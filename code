@@ -1,0 +1,85 @@
+Write a S&P500 options trading bot in python code
+
+#import necessary packages
+import pandas as pd 
+import numpy as np 
+import matplotlib.pyplot as plt 
+from scipy import stats 
+import datetime 
+import seaborn as sns 
+import warnings
+warnings.filterwarnings('ignore')
+import math 
+
+#get the data 
+data = pd.read_csv('S&P500.csv')
+
+#set the option parameters 
+symbol = 'SPX' 
+expiry = '2020-10-31'
+strike_price = 3200 
+option_type = 'call' 
+
+#calculate the implied volatility 
+def implied_volatility(data): 
+    s = data['UnderlyingPrice']
+    k = strike_price
+    t = (datetime.date(2020, 10, 31) - datetime.date.today()).days / 365
+    r = data['RiskFreeRate']
+    c = data['OptionPrice']
+    iv = stats.implied_volatility(c, s, k, t, r, option_type)
+    return iv_price
+    t = (datetime.date(2020, 10, 31) - datetime.date.today()).days / 365
+    r = data['RiskFreeRate']
+    iv = implied_volatility(data)
+    gamma = stats.bs_gamma(s, k, t, r, iv, option_type)
+    return gamma
+
+#calculate the vega 
+def vega(data): 
+    s = data['UnderlyingPrice']
+    k = strike_price
+    t = (datetime.date(2020, 10, 31) - datetime.date.today()).days / 365
+    r = data['RiskFreeRate']
+    iv = implied_volatility(data)
+    vega = stats.bs_vega(s, k, t, r, iv, option_type)
+    return vega
+
+#plot the option payoff 
+def option_payoff(data): 
+    s = data['UnderlyingPrice']
+    otype = np.where(data['OptionType'] == option_type, 1, -1)
+    k = strike_price option_type + ' Option', fontsize=16)
+    plt.show()
+
+#start trading 
+def trading_bot(): 
+    #get the current stock price 
+    current_price = data['UnderlyingPrice'][-1]
+    
+    #calculate the expected price, delta, gamma and vega 
+    expected_price = expected_price(data)
+    delta = delta(data)
+    gamma = gamma(data)
+    vega = vega(data)
+    
+    #calculate the target price 
+    target_price = expected_price + delta * (current_price - strike_price) + gamma * (current_price - strike_price) ** 2 + vega * (current_price - strike_price) ** 3
+    
+    #check if the current price is above or below the target price 
+    if current_price > target_price: 
+        #if above, sell 
+        order_type = 'sell'
+    elif current_price < target_price: 
+        #if below, buy 
+        order_type = 'buy'
+    else: 
+        #if equal, do nothing 
+        order_type = 'none'
+        
+    #place the order 
+    order = {'symbol': symbol, 'expiry': expiry, 'strike_price': strike_price, 'option_type': option_type, 'order_type': order_type}
+    print('Order placed: \n', order)
+    
+#run the trading bot 
+trading_bot()
